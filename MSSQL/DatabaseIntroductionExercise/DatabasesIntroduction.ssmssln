@@ -1,0 +1,28 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# SQL Server Management Studio Solution File, Format Version 18.00
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "8.CreateTableUsers", "8.CreateTableUsers\8.CreateTableUsers.ssmssqlproj", "{D4AA0545-6319-4FF2-85F6-A3EBE3B49990}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "13.MoviesDatabase", "13.MoviesDatabase\13.MoviesDatabase.ssmssqlproj", "{FE7F7CF2-77BD-47E0-9F18-D27B77FC27E5}"
+EndProject
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "16.CreateSoftUniDatabase", "16.CreateSoftUniDatabase\16.CreateSoftUniDatabase.ssmssqlproj", "{E83A0EFF-31D6-4A2A-A9D0-91BB86F91A35}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Default = Default|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{ADB28EE4-775E-4540-98CA-16E3C18CEDAE}.Default|Default.ActiveCfg = Default
+		{D4AA0545-6319-4FF2-85F6-A3EBE3B49990}.Default|Default.ActiveCfg = Default
+		{FE7F7CF2-77BD-47E0-9F18-D27B77FC27E5}.Default|Default.ActiveCfg = Default
+		{E83A0EFF-31D6-4A2A-A9D0-91BB86F91A35}.Default|Default.ActiveCfg = Default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {7709464F-0523-4AAD-88CD-A257D17BBFB3}
+	EndGlobalSection
+EndGlobal
