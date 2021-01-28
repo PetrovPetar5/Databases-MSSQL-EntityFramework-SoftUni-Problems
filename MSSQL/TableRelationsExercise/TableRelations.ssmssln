@@ -1,0 +1,22 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# SQL Server Management Studio Solution File, Format Version 18.00
+VisualStudioVersion = 15.0.28307.421
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{4F2E2C19-372F-40D8-9FA7-9D2138C6997A}") = "TableRelations", "TableRelations\TableRelations.ssmssqlproj", "{2E4DC126-D541-4F43-B432-25C92AD23B64}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Default|Default = Default|Default
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{2E4DC126-D541-4F43-B432-25C92AD23B64}.Default|Default.ActiveCfg = Default
+		{49011207-EA7D-4898-AF1B-E0AD763D6B7B}.Default|Default.ActiveCfg = Default
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {847776C1-6F9C-4AEA-8CA9-63B2D68780CB}
+	EndGlobalSection
+EndGlobal
