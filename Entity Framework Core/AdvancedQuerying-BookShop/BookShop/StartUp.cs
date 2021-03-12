@@ -263,6 +263,35 @@
 
             return sb.ToString().TrimEnd();
         }
+
+
+        //Problem 14. Increase Prices
+        public static void IncreasePrices(BookShopContext context)
+        {
+            var bookstoUpdate = context.Books
+                .Where(b => b.ReleaseDate.Value.Year < 2010);
+
+            foreach (var book in bookstoUpdate)
+            {
+                book.Price += 5;
+            }
+
+            context.SaveChanges();
+
+        }
+
+        //Problem 15. Remove Books
+        public static int RemoveBooks(BookShopContext context)
+        {
+            var books = context.Books
+                .Where(b => b.Copies < 4200)
+                .ToList();
+            int count = books.Count();
+            context.Books.RemoveRange(books);
+            context.SaveChanges();
+
+            return books.Count();
+        }
     }
 }
 
