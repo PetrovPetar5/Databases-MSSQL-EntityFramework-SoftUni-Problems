@@ -8,6 +8,7 @@
     using CarDealer.Data;
     using CarDealer.DTO;
     using CarDealer.Models;
+    using Microsoft.EntityFrameworkCore;
     using Newtonsoft.Json;
 
     public class StartUp
@@ -33,14 +34,89 @@
             //ImportCustomers(context, customersInput);
             //ImportSales(context, salesInput);
 
-            Console.WriteLine(GetLocalSuppliers(context));
+            Console.WriteLine(GetSalesWithAppliedDiscount(context));
 
+        }
+
+        //Query 11. Export Sales with Applied Discount
+        public static string GetSalesWithAppliedDiscount(CarDealerContext context)
+        {
+            var customerCarInfo = context.Sales.Take(10).Select(sale => new
+            {
+                Car = new
+                {
+                    Make = sale.Car.Make,
+                    Model = sale.Car.Model,
+                    TravelledDistance = sale.Car.TravelledDistance,
+                },
+
+                CustomerName = sale.Customer.Name,
+                Discount = sale.Discount,
+                Price = sale.Car.PartCars.Sum(pc => pc.Part.Price),
+                PriceWithDiscount = sale.Car.PartCars.Sum(pc => pc.Part.Price) -
+                                            sale.Car.PartCars.Sum(pc => pc.Part.Price) * sale.Discount / 100,
+            })
+
+                .ToList();
+
+            var result = JsonConvert.SerializeObject(customerCarInfo, Formatting.Indented);
+            return result;
+
+        }
+
+        //Query 10. Export Total Sales by Customer
+        public static string GetTotalSalesByCustomer(CarDealerContext context)
+        {
+            var customers = context.Customers.Where(customer => customer.Sales.Count() > 0).Select(customer => new
+            {
+                fullName = customer.Name,
+                boughtCars = customer.Sales.Count(),
+                spentMoney = context.PartCars.Where(car => customer.Sales.Any(x => x.Car.Id == car.CarId)).Select(carPart => carPart.Part.Price).Sum(),
+            })
+                .ToList()
+                .OrderByDescending(x => x.spentMoney)
+                .ThenByDescending(x => x.boughtCars);
+
+
+            var result = JsonConvert.SerializeObject(customers, Formatting.Indented);
+            return result;
+        }
+        //Query 9. Export Cars with Their List of Parts
+        public static string GetCarsWithTheirListOfParts(CarDealerContext context)
+        {
+            var cars = context.Cars.Select(x => new
+            {
+                car = new
+                {
+                    Make = x.Make,
+                    Model = x.Model,
+                    TravelledDistance = x.TravelledDistance,
+                },
+                parts = x.PartCars.Select(part => new
+                {
+                    Name = part.Part.Name,
+                    Price = part.Part.Price.ToString("F2"),
+                }).ToList()
+            })
+                .ToArray();
+
+            var result = JsonConvert.SerializeObject(cars, Formatting.Indented);
+            return result;
         }
 
         //Query 8. Export Local Suppliers
         public static string GetLocalSuppliers(CarDealerContext context)
         {
+            var localSupliers = context.Suppliers.Where(x => x.IsImporter == false).Select(s => new
+            {
+                Id = s.Id,
+                Name = s.Name,
+                PartsCount = s.Parts.Count(),
+            })
+                .ToArray();
 
+            var jsonResult = JsonConvert.SerializeObject(localSupliers, Formatting.Indented);
+            return jsonResult;
         }
 
         //Query 7. Export Cars from Make Toyota
