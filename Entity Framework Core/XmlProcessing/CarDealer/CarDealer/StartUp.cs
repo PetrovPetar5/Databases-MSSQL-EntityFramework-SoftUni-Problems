@@ -1,14 +1,15 @@
-﻿using CarDealer.Data;
-using CarDealer.DTO.Input;
-using CarDealer.DTO.Output;
-using CarDealer.Models;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Xml.Serialization;
-
-namespace CarDealer
+﻿namespace CarDealer
 {
+    using CarDealer.Data;
+    using CarDealer.DTO.Input;
+    using CarDealer.DTO.Output;
+    using CarDealer.Models;
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Text;
+    using System.Xml.Serialization;
     public class StartUp
     {
         public static void Main(string[] args)
@@ -28,19 +29,76 @@ namespace CarDealer
             //ImportCars(carDealerContext, inputXmlCars);
             //ImportCustomers(carDealerContext, inputXmlCustomers);
             //ImportSales(carDealerContext, inputXmlSales);
-            System.Console.WriteLine(GetCarsWithTheirListOfParts(carDealerContext));
+            System.Console.WriteLine(GetSalesWithAppliedDiscount(carDealerContext));
 
         }
 
+        //Query 11. Sales with Applied Discount
+
+        public static string GetSalesWithAppliedDiscount(CarDealerContext context)
+        {
+            var sb = new StringBuilder();
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add(String.Empty, String.Empty);
+
+            var sales = context
+                .Sales
+                .Select(x => new ExportSaleModel()
+                {
+                    Car = new ExportSaleCarModel()
+                    {
+                        Make = x.Car.Make,
+                        Model = x.Car.Model,
+                        TraveledDistance = x.Car.TravelledDistance
+                    },
+                    Name = x.Customer.Name,
+                    Discount = x.Discount,
+                    Price = x.Car.PartCars.Sum(c => c.Part.Price),
+                    PriceWithDiscount = x.Car.PartCars.Sum(c => c.Part.Price) -
+                                        x.Car.PartCars.Sum(c => c.Part.Price) * x.Discount / 100
+                })
+                .ToArray();
+
+            XmlSerializer xmlSerializer = new XmlSerializer(typeof(ExportSaleModel[]), new XmlRootAttribute("sales"));
+
+            xmlSerializer.Serialize(new StringWriter(sb), sales, namespaces);
+
+            return sb.ToString().Trim();
+        }
+
+        //Query 10. Total Sales by Customer
+        public static string GetTotalSalesByCustomer(CarDealerContext context)
+        {
+            var customers = context
+                .Customers
+                .Select(x => new ExportTotalSalesModel()
+                {
+                    FullName = x.Name,
+                    BoughtCars = x.Sales.Count,
+                    SpentMoney = context.PartCars.Where(car => x.Sales.Any(x => x.Car.Id == car.CarId)).Select(carPart => carPart.Part.Price).Sum(),
+                })
+                .Where(c => c.BoughtCars >= 1)
+                .OrderByDescending(c => c.SpentMoney)
+                .ToArray();
+            StringBuilder sb = new StringBuilder();
+            var namespaces = new XmlSerializerNamespaces();
+            namespaces.Add(String.Empty, String.Empty);
+            XmlSerializer xmlSerializer =
+                new XmlSerializer(typeof(ExportTotalSalesModel[]), new XmlRootAttribute("customers"));
+
+            xmlSerializer.Serialize(new StringWriter(sb), customers, namespaces);
+
+            return sb.ToString().Trim();
+        }
         //Query 9. Cars with Their List of Parts
         public static string GetCarsWithTheirListOfParts(CarDealerContext context)
         {
-            var carsPartsDTO = context.Cars.Select(c => new CarWithPartsOutputModel
+            var carsPartsDTO = context.Cars.Select(c => new ExportCarPartsModel
             {
                 Make = c.Make,
                 Model = c.Model,
                 TraveledDistance = c.TravelledDistance,
-                Parts = c.PartCars.Select(x => new PartOutputModel
+                Parts = c.PartCars.Select(x => new ExportPartModel
                 {
                     Name = x.Part.Name,
                     Price = x.Part.Price,
@@ -55,7 +113,7 @@ namespace CarDealer
                 .ToArray();
 
             var writter = new StringWriter();
-            var serializer = new XmlSerializer(typeof(CarWithPartsOutputModel[]), new XmlRootAttribute("cars"));
+            var serializer = new XmlSerializer(typeof(ExportCarPartsModel[]), new XmlRootAttribute("cars"));
 
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");
@@ -68,7 +126,7 @@ namespace CarDealer
         //Query 8. GetLocalSuppliers
         public static string GetLocalSuppliers(CarDealerContext context)
         {
-            var LocalSuppliersDTO = context.Suppliers.Where(x => x.IsImporter == false).Select(supplier => new LocalSuppliersOutputModel
+            var LocalSuppliersDTO = context.Suppliers.Where(x => x.IsImporter == false).Select(supplier => new ExportLocalSuppliersModel
             {
                 Id = supplier.Id,
                 Name = supplier.Name,
@@ -76,7 +134,7 @@ namespace CarDealer
             })
                .ToArray();
 
-            var serializer = new XmlSerializer(typeof(LocalSuppliersOutputModel[]), new XmlRootAttribute("suppliers"));
+            var serializer = new XmlSerializer(typeof(ExportLocalSuppliersModel[]), new XmlRootAttribute("suppliers"));
             var writter = new StringWriter();
             XmlSerializerNamespaces ns = new XmlSerializerNamespaces();
             ns.Add("", "");
@@ -89,8 +147,8 @@ namespace CarDealer
         public static string GetCarsFromMakeBmw(CarDealerContext context)
         {
             var modelToLookFor = "BMW";
-            var serializer = new XmlSerializer(typeof(CarBMVOutputModel[]), new XmlRootAttribute("cars"));
-            var carsBMW = context.Cars.Where(x => x.Make == modelToLookFor).Select(bmw => new CarBMVOutputModel
+            var serializer = new XmlSerializer(typeof(ExportCarBMVModel[]), new XmlRootAttribute("cars"));
+            var carsBMW = context.Cars.Where(x => x.Make == modelToLookFor).Select(bmw => new ExportCarBMVModel
             {
                 Id = bmw.Id,
                 Model = bmw.Model,
@@ -113,9 +171,9 @@ namespace CarDealer
         //Query 6. Cars With Distance
         public static string GetCarsWithDistance(CarDealerContext context)
         {
-            var serializer = new XmlSerializer(typeof(CarOutputModel[]), new XmlRootAttribute("cars"));
+            var serializer = new XmlSerializer(typeof(ExportCarModel[]), new XmlRootAttribute("cars"));
             var millageLimit = 2000000;
-            var carsOverGivenMillage = context.Cars.Where(car => car.TravelledDistance > millageLimit).Select(x => new CarOutputModel
+            var carsOverGivenMillage = context.Cars.Where(car => car.TravelledDistance > millageLimit).Select(x => new ExportCarModel
             {
                 Make = x.Make,
                 Model = x.Model,
@@ -180,9 +238,9 @@ namespace CarDealer
         //Query 3. Import Cars
         public static string ImportCars(CarDealerContext context, string inputXml)
         {
-            var serializer = new XmlSerializer(typeof(CarModel[]), new XmlRootAttribute("Cars"));
+            var serializer = new XmlSerializer(typeof(CarInputModel[]), new XmlRootAttribute("Cars"));
             var carsInput = new StringReader(inputXml);
-            var carsDTO = serializer.Deserialize(carsInput) as CarModel[];
+            var carsDTO = serializer.Deserialize(carsInput) as CarInputModel[];
 
             var parts = context.Parts.Select(part => part.Id).ToList();
 
@@ -207,9 +265,9 @@ namespace CarDealer
         //Query 2. Import Parts
         public static string ImportParts(CarDealerContext context, string inputXml)
         {
-            var serializer = new XmlSerializer(typeof(PartModel[]), new XmlRootAttribute("Parts"));
+            var serializer = new XmlSerializer(typeof(PartInputModel[]), new XmlRootAttribute("Parts"));
             var partsInput = new StringReader(inputXml);
-            var partModels = serializer.Deserialize(partsInput) as PartModel[];
+            var partModels = serializer.Deserialize(partsInput) as PartInputModel[];
 
             var suppliers = context.Suppliers.Select(s => s.Id).ToList();
             var parts = partModels.Where(part => suppliers.Any(s => s == part.SupplierId)).Select(x => new Part
@@ -231,9 +289,9 @@ namespace CarDealer
         //Query 1. Import Suppliers
         public static string ImportSuppliers(CarDealerContext context, string inputXml)
         {
-            var serializer = new XmlSerializer(typeof(SupplierDTO[]), new XmlRootAttribute("Suppliers"));
+            var serializer = new XmlSerializer(typeof(SupplierInputModel[]), new XmlRootAttribute("Suppliers"));
             var suppliersInput = new StringReader(inputXml);
-            var suppliersDTO = serializer.Deserialize(suppliersInput) as SupplierDTO[];
+            var suppliersDTO = serializer.Deserialize(suppliersInput) as SupplierInputModel[];
 
             var suppliers = suppliersDTO.Select(x => new Supplier
             {
