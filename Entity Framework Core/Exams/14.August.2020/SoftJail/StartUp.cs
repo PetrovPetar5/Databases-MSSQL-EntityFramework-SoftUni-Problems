@@ -53,7 +53,7 @@
             Console.WriteLine(xmlOutput);
             File.WriteAllText(exportDir + "PrisonersInbox.xml", xmlOutput);
         }
-        private static void ResetDatabase(SoftJailDbContext context, bool shouldDropDatabase = true)
+        private static void ResetDatabase(SoftJailDbContext context, bool shouldDropDatabase = false)
         {
             if (shouldDropDatabase)
             {
